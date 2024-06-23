@@ -57,10 +57,10 @@ def main(args):
         sampler = data.sampler.SubsetRandomSampler(initial_indices)
         val_sampler = data.sampler.SubsetRandomSampler(val_indices)
 
-        querry_dataloader = data.DataLoader(train_dataset, sampler=sampler, batch_size=args.batch_size, drop_last=True, num_workers=0)
-        val_dataloader = data.DataLoader(train_dataset, sampler=val_sampler, batch_size=args.batch_size, drop_last=False, num_workers=0)
-        rot_dataloader = data.DataLoader(rot_train_dataset, sampler=sampler, batch_size=args.batch_size, drop_last=True, num_workers=0)
-        rot_val_dataloader = data.DataLoader(rot_train_dataset, sampler=val_sampler, batch_size=args.batch_size, drop_last=True, num_workers=0)
+        querry_dataloader = data.DataLoader(train_dataset, sampler=sampler, batch_size=args.batch_size, drop_last=True, num_workers=4)
+        val_dataloader = data.DataLoader(train_dataset, sampler=val_sampler, batch_size=args.batch_size, drop_last=False, num_workers=4)
+        rot_dataloader = data.DataLoader(rot_train_dataset, sampler=sampler, batch_size=args.batch_size, drop_last=True, num_workers=4)
+        rot_val_dataloader = data.DataLoader(rot_train_dataset, sampler=val_sampler, batch_size=args.batch_size, drop_last=True, num_workers=4)
 
         solver = Solver(args, test_dataloader)
         samplerRot = samplerMulti2.RotSampler(args.budget, args)
@@ -76,14 +76,14 @@ def main(args):
             rotNet1 = RotNetMulti(num_classes=args.num_classes, num_rotations=4)
 
             # Ensure everything runs on CPU
-            task_model = task_model.cpu()
-            rotNet1 = rotNet1.cpu()
+            task_model = task_model.cuda()
+            rotNet1 = rotNet1.cuda()
 
             unlabeled_indices = np.setdiff1d(list(all_indices), current_indices)
             remain_indices = np.setdiff1d(list(all_indices), current_indices)
             unlabeled_sampler = data.sampler.SubsetRandomSampler(unlabeled_indices)
-            unlabeled_dataloader = data.DataLoader(train_dataset, sampler=unlabeled_sampler, batch_size=args.batch_size, drop_last=False, num_workers=0)
-            rot_unlabeled_dataloader = data.DataLoader(rot_train_dataset, sampler=unlabeled_sampler, batch_size=args.batch_size, drop_last=False, num_workers=0)
+            unlabeled_dataloader = data.DataLoader(train_dataset, sampler=unlabeled_sampler, batch_size=args.batch_size, drop_last=False, num_workers=4)
+            rot_unlabeled_dataloader = data.DataLoader(rot_train_dataset, sampler=unlabeled_sampler, batch_size=args.batch_size, drop_last=False, num_workers=4)
 
             acc = solver.train(querry_dataloader, val_dataloader, task_model, unlabeled_dataloader, num_img1)
             print('Final accuracy of Task network with {}% of data is: {:.2f}'.format(int(split * 100), acc))
